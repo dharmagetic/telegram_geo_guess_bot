@@ -9,8 +9,36 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import View
 from django.conf import settings
 
+from bot.models import Country
+
 TOKEN = settings.TELEGRAM_BOT_TOKEN
 BOT = telepot.Bot(TOKEN)
+
+GUESS_COUNTRIES = u"Угадывать страны"
+NEXT_COUNTRY = u"Следующая страна"
+GUESS_CAPITALS = u"Угадывать столицы"
+NEXT_CAPITAL = u"Следующая столица"
+
+
+def _guess_capital(chat_id):
+    reply_markup = {"keyboard": [[u"Следующая страна"]], "one_time_keyboard": True}
+    country = Country.random.country()
+    message = u"Угадайте столицу %s" % (country)
+    return {
+        'message': message,
+        'reply_markup': reply_markup
+    }
+
+
+def _guess_country(chat_id):
+    pass
+
+COMMANDS = {
+    GUESS_COUNTRIES: _guess_country,
+    NEXT_COUNTRY: _guess_country,
+    GUESS_CAPITALS: _guess_capital,
+    NEXT_CAPITAL: _guess_capital
+}
 
 
 class CommandReceiveView(View):
@@ -28,7 +56,12 @@ class CommandReceiveView(View):
             return HttpResponseForbidden('Invalid request body')
         else:
             chat_id = payload.get('message').get('chat').get('id')
-            reply_markup = {"keyboard": [[u"Угадывать страны"], [u"Угадывать столицы"]], "one_time_keyboard": True}
-            BOT.sendMessage(chat_id, u"Pizda", reply_markup=reply_markup)
+            message = None
+            command = COMMANDS.get(message)
+            if command:
+                response = command(chat_id)
+                BOT.sendMessage(chat_id, response['message'], reply_markup=response['reply_markup'])
+            else:
+                pass
 
             return JsonResponse({}, status=200)

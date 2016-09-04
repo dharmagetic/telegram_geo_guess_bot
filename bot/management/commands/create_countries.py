@@ -2,7 +2,7 @@
 
 from django.core.management import BaseCommand
 
-from geo.models import Country
+from bot.models import Country
 
 
 class Command(BaseCommand):
