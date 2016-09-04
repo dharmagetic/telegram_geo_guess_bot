@@ -10,6 +10,7 @@ from django.views.generic.base import View
 from django.conf import settings
 
 from bot.models import Country
+from bot.storage import get_user_state, set_user_state
 
 TOKEN = settings.TELEGRAM_BOT_TOKEN
 BOT = telepot.Bot(TOKEN)
@@ -21,9 +22,14 @@ NEXT_CAPITAL = u"Следующая столица"
 
 
 def _guess_capital(chat_id):
-    reply_markup = {"keyboard": [[u"Следующая столица"], [u"Угадывать страны"]], "one_time_keyboard": True}
     country = Country.random.country()
     message = u"Назовите столицу %s" % (country)
+    reply_markup = {"keyboard": [[u"Следующая столица"], [u"Угадывать страны"]], "one_time_keyboard": True}
+    state = {
+        'correct_answer': country,
+        'current_command': GUESS_CAPITALS
+    }
+    set_user_state(chat_id, state)
     return {
         'message': message,
         'reply_markup': reply_markup
@@ -31,9 +37,14 @@ def _guess_capital(chat_id):
 
 
 def _guess_country(chat_id):
-    reply_markup = {"keyboard": [[u"Следующая страна"], [u"Угадывать столицы"]], "one_time_keyboard": True}
     capital = Country.random.capital()
     message = u"Назовите страну, чья столица %s" % (capital)
+    reply_markup = {"keyboard": [[u"Следующая страна"], [u"Угадывать столицы"]], "one_time_keyboard": True}
+    state = {
+        'correct_answer': capital,
+        'current_command': GUESS_COUNTRIES
+    }
+    set_user_state(chat_id, state)
     return {
         'message': message,
         'reply_markup': reply_markup
@@ -47,6 +58,28 @@ COMMANDS = {
 }
 
 
+def check_answer(chat_id, chat_message):
+    state = get_user_state(chat_id)
+    if not state:
+        message = u"Привет! Я робот, который поможет тебе прошариться в географии. Попробуй угадать страну или столицу!"
+        reply_markup = {"keyboard": [[u"Угадывать столицы"], [u"Угадывать страны"]], "one_time_keyboard": True}
+        response = {
+            'message': message,
+            'reply_markup': reply_markup
+        }
+        return response
+    else:
+        correct_answer = state.get('correct_answer')
+        current_command = state.get('current_command')
+        if chat_message == correct_answer:
+            message = u"Правильно!"
+        else:
+            message = u"Не верно :( Правильный ответ: %s" % (correct_answer)
+        response = COMMANDS.get(current_command)()
+        response['message'] = message
+        return response
+
+
 class CommandReceiveView(View):
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
@@ -54,8 +87,6 @@ class CommandReceiveView(View):
 
     def post(self, request, *args, **kwargs):
         bot_token = kwargs.get('bot_token')
-        # import pdb
-        # pdb.set_trace()
         if bot_token != TOKEN:
             return HttpResponseForbidden('Invalid bot token!')
         try:
@@ -70,6 +101,7 @@ class CommandReceiveView(View):
                 response = command(chat_id)
                 BOT.sendMessage(chat_id, response['message'], reply_markup=response['reply_markup'])
             else:
-                pass
+                response = check_answer(chat_id, message)
+                BOT.sendMessage(chat_id, response['message'], reply_markup=response['reply_markup'])
 
             return JsonResponse({}, status=200)
