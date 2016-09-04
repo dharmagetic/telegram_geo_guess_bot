@@ -71,7 +71,7 @@ COMMANDS = {
 
 
 def check_answer(chat_id, chat_message):
-    state = get_user_state(chat_id)
+    state = get_user_state(str(chat_id))
     if not state:
         message = u"Привет! Я робот, который поможет тебе прошариться в географии. Попробуй угадать страну или столицу!"
         reply_markup = {"keyboard": [[u"Угадывать столицы"], [u"Угадывать страны"]], "one_time_keyboard": True}
@@ -87,7 +87,7 @@ def check_answer(chat_id, chat_message):
             message = u"Правильно!"
         else:
             message = u"Не верно :( Правильный ответ: %s" % (correct_answer)
-        response = COMMANDS.get(current_command)()
+        response = COMMANDS.get(current_command)(chat_id)
         response['message'] = message
         return response
 
