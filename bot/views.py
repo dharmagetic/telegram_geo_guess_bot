@@ -34,7 +34,7 @@ def _start(chat_id):
 
 def _guess_capital(chat_id):
     country = Country.random.country()
-    capital = Country.objects.get(country=country).capital
+    capital = Country.objects.get(name=country).capital
     message = u"Назовите столицу %s" % (country)
     reply_markup = {"keyboard": [[u"Следующая столица"], [u"Угадывать страны"]], "one_time_keyboard": True}
     state = {
