@@ -15,10 +15,21 @@ from bot.storage import get_user_state, set_user_state
 TOKEN = settings.TELEGRAM_BOT_TOKEN
 BOT = telepot.Bot(TOKEN)
 
+START = u"/start"
 GUESS_COUNTRIES = u"Угадывать страны"
 NEXT_COUNTRY = u"Следующая страна"
 GUESS_CAPITALS = u"Угадывать столицы"
 NEXT_CAPITAL = u"Следующая столица"
+
+
+def _start(chat_id):
+    message = u"Привет! Я робот, который поможет тебе прошариться в географии. Попробуй угадать страну или столицу!"
+    reply_markup = {"keyboard": [[u"Угадывать столицы"], [u"Угадывать страны"]], "one_time_keyboard": True}
+    response = {
+        'message': message,
+        'reply_markup': reply_markup
+    }
+    return response
 
 
 def _guess_capital(chat_id):
@@ -51,10 +62,11 @@ def _guess_country(chat_id):
     }
 
 COMMANDS = {
+    START: _start,
     GUESS_COUNTRIES: _guess_country,
     NEXT_COUNTRY: _guess_country,
     GUESS_CAPITALS: _guess_capital,
-    NEXT_CAPITAL: _guess_capital
+    NEXT_CAPITAL: _guess_capital,
 }
 
 
