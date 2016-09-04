@@ -21,9 +21,9 @@ NEXT_CAPITAL = u"Следующая столица"
 
 
 def _guess_capital(chat_id):
-    reply_markup = {"keyboard": [[u"Следующая страна"]], "one_time_keyboard": True}
+    reply_markup = {"keyboard": [[u"Следующая столица"]], "one_time_keyboard": True}
     country = Country.random.country()
-    message = u"Угадайте столицу %s" % (country)
+    message = u"Назовите столицу %s" % (country)
     return {
         'message': message,
         'reply_markup': reply_markup
@@ -31,7 +31,13 @@ def _guess_capital(chat_id):
 
 
 def _guess_country(chat_id):
-    pass
+    reply_markup = {"keyboard": [[u"Следующая страна"]], "one_time_keyboard": True}
+    capital = Country.random.capital()
+    message = u"Назовите страну, чья столица %s" % (capital)
+    return {
+        'message': message,
+        'reply_markup': reply_markup
+    }
 
 COMMANDS = {
     GUESS_COUNTRIES: _guess_country,
@@ -48,6 +54,8 @@ class CommandReceiveView(View):
 
     def post(self, request, *args, **kwargs):
         bot_token = kwargs.get('bot_token')
+        # import pdb
+        # pdb.set_trace()
         if bot_token != TOKEN:
             return HttpResponseForbidden('Invalid bot token!')
         try:
@@ -56,7 +64,7 @@ class CommandReceiveView(View):
             return HttpResponseForbidden('Invalid request body')
         else:
             chat_id = payload.get('message').get('chat').get('id')
-            message = None
+            message = payload.get('message').get('text')
             command = COMMANDS.get(message)
             if command:
                 response = command(chat_id)
