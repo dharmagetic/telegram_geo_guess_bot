@@ -21,7 +21,7 @@ NEXT_CAPITAL = u"Следующая столица"
 
 
 def _guess_capital(chat_id):
-    reply_markup = {"keyboard": [[u"Следующая столица"]], "one_time_keyboard": True}
+    reply_markup = {"keyboard": [[u"Следующая столица"], [u"Угадывать страны"]], "one_time_keyboard": True}
     country = Country.random.country()
     message = u"Назовите столицу %s" % (country)
     return {
@@ -31,7 +31,7 @@ def _guess_capital(chat_id):
 
 
 def _guess_country(chat_id):
-    reply_markup = {"keyboard": [[u"Следующая страна"]], "one_time_keyboard": True}
+    reply_markup = {"keyboard": [[u"Следующая страна"], [u"Угадывать столицы"]], "one_time_keyboard": True}
     capital = Country.random.capital()
     message = u"Назовите страну, чья столица %s" % (capital)
     return {
