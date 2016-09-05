@@ -23,6 +23,7 @@ class RandomGeoObjectManager(Manager):
         geo_object = self._random_geo_object()
         return geo_object.capital
 
+
 class Country(models.Model):
     name = models.CharField(verbose_name=u"Cтрана", max_length=255, db_index=True)
     capital = models.CharField(verbose_name=u"Столица", max_length=255, db_index=True)
